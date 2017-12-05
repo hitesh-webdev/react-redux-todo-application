@@ -1,0 +1,627 @@
+﻿Node follows CommonJS pattern to export and require modules.
+
+Browserify bundles all the npm packages(dependencies) into a single file and then they can 
+be used in the browser.
+
+React Router is heavily inspired by Ember's approach of routing. It is also created and 
+maintained by Facebook.
+
+Flux is a uni-directional data flow library created by Facebook to compliment React. 
+It is just a branding name to follow a uni-directional data flow pattern. 
+It avoids traditional MVC pattern.
+
+Gulp is a task runner which is easier to configure than Grunt and helps us automate 
+several tasks during development and testing of our application. It keeps all the 
+data into memory rather than writing it to the disk, that's why it is faster than Grunt.
+
+Jest is a wrapper over the Jasmine testing framework to write automated test cases 
+for React components.
+
+Reactify plugin is used with Browserify to compile the JSX into JavaScript.
+
+// Bootstraping the React App
+React.render(<Home />, document.getElementById('app'));
+
+
+/* LifeCycle Method
+==================================================== */
+
+1. componentWillMount - Before initial rendering - Client and Server
+
+2. componentDidMount - After render (Access DOM, make AJAX requests, set timers, 
+integrate with frameworks)
+
+3. componentWillReceiveProps - Receive new props or props value change. Not called 
+on initial render. (Set state before a new render)
+
+4. shouldComponentUpdate - Before new props or state are being received. Not called 
+on initial render. (Performance. Return false to avoid unnecessary re-renders)
+
+5. componentWillUpdate - Immediately before rendering when new props or state is received. 
+Not called on initial render. (Cannot call setState() in this function)
+
+6. componentDidUpdate - After component's updates are flushed to the DOM. Not called 
+on initial render. (Work with DOM after an update)
+
+7. componentWillUnmount - Immediately before component is removed from the DOM. (Cleanup)
+
+// Key to dynamic child components
+When we are creating multiple child components dynamically, we are required to provide a 
+key attribute to them, which is used by React to properly reorder or remove the 
+correct child element.
+
+
+/* React Router
+==================================================== */
+var Router = require('react-router);
+var routes = require('./routes');
+
+// Bootstraping the app
+Router.run(routes, function(Handler){
+    React.render(<Handler/>, document.getElementById('app'));
+});
+
+// routes.js
+<Route name="about" path="/" handler={require('./components/app')} />
+    <Route name="about" handler={require('./components/about/aboutPage')} />       // path="about"
+    <NotFoundRoute handler={require('./components/404Page')} />
+</Route>
+
+Note- We can omit 'path' if the 'name' and 'path' are same.
+
+// html links (in place of <a>)
+<Link to="about">About Us</Link> // name of the path
+
+// Redirect
+<Redirect from="old-path" to="name-of-the-new-path" />
+
+
+/* Facebook's Flux Implementation
+================================================= */
+
+Flux is the Facebook's name of an architectural pattern that has unidirectional data 
+flows and centralized dispatcher.
+
+Action -> Dispatcher -> Stores -> React View
+
+An Action occurs and the Dispatcher notifies the Stores that have registered to that 
+particular events with the Dispatcher, when the Store value changes, the corresponding 
+React component is updated/re-rendered.
+
+This is called unidirectional because the updates flow from one direction that is from 
+Action to View.
+
+Unlike two-way data binding, the view doesn't directly updates state, rather it fires off 
+an action which ultimately updates the state.
+
+Dispatcher is a centralized singleton registry(list of callbacks). Broadcasts payloads 
+to multiple registered callbacks.
+
+Dispatched Event doesn't know how to update the data, only the Store knows that.
+
+UI never updates the data directly and data never updates the UI directly.
+
+Dispatcher always dispatches the same payload(contains 'type' & 'data'). 'Type' tells 
+the store what event has occured.
+
+Stores use Node's Event Emitter to emit a change event to React Component to re-render the view.
+
+Action commonly use AJAX requests to get and receive data.
+
+
+/* React in ES6
+========================================== */
+
+1. No autobind
+
+constructor() {
+    super(props);
+    this.handleClick = this.handleClick.bind(this);
+}
+
+2. Set initialState function is not used, rather the state is intialised in the constructor.
+
+Note- Statless functional components avoid the 'this' keyword. 
+They don't support state or lifecycle methods.
+
+/* ====================== Important ======================= */
+Note- 'Refs' will always return NULL in a stateless component, so we are required to use 
+class based components to refer to the DOM elements.
+
+Note- If you are required to make child functions, use class based component for improvement 
+in performance, as a new function instance will be created everytime that component re-renders.
+
+
+/* Redux
+====================================================== */
+
+- Complex data flows
+- Inter-component communication
+- Non-hierarchical data
+
+Data flows down, action flows up.
+
+/* WHY Redux?
+================================================ */
+
+One Store (no overhead to communicate data among various stores)
+Reduced Boilerplate code than Flux.
+
+//3 core principles
+- One Immutable Store(Flux has multiple mutable stores)
+- Action triggers change
+- Reducers(functions) update state (This function accepts the current state in an action and returns a new state)
+
+Redux don't have a Dispatcher, rather one or more Reducers(functions) handle the action occured and update the 
+single store.
+
+Since state is Immutable in Redux, so Reducers return a new updated state that updates the store.
+
+The React components are connected to the store via React-Redux.
+
+Action is a JavaScript object containing a 'type' property and other data payload.
+Action creators are functions that return this JavaScript object.
+
+Note- You should not include functions or promises in data payload, as these cannot be serialized using JSON.
+
+- store.dispatch(action)
+- store.subscribe(listener)
+- store.getState()
+- replaceReducer(nextReducer)
+
+Note- No method to manipulate/update state within a store.
+
+Object.assign({}, prevState, {name: 'Hitesh'})
+
+Creating a new empty object which has the same template as the prevState object, with the 'name' property updated to 
+Hitesh.
+
+// Why Immutability?
+1. Clarity - What line of code changed that state? In Redux, it's simple, reducer changed the state.
+
+2. Performance - If states were mutable, Redux have to check every single property on the state object 
+to determine whether the state have changed or not.
+Now a simple reference comparison works, if the old state isn't referencing the same object in the memory,
+we can say that the state has changed.
+if(prevStoreState !== storeState)
+
+3. Time History Debugging
+
+// Forbidden in Reducers
+- Mutate arguments(state, action)
+- Perform side-effects (API calls or routing transitions)
+- Call non-pure functions (Date().now() or Math.random() etc.)
+
+Note- Reducer's return value should only depend on the value of its arguments.
+
+Note- All reducers are called when an action is dispatched, the switch case inside the reducer checks whether,
+a specific type of action is performed and the state is required to be changed accordingly. Thus, it is very
+important that all reducers return the untouched state as default case, if no switch case matched the occured 
+action type.
+
+// React-Redux library
+It is a library used to make a connection between Store and React Components.
+It consists of 2 components:
+1. Provider component - Attaches app to store.
+2. Connect function - Creates container components (for passing data to React's presentation components)
+
+<Provider store={this.props.store}>
+    <App />
+</Provider> 
+
+Provider component is utilised at the application root, it wraps the App component (top level component).
+It attaches the application to the redux store.
+Provider component uses React's Context feature(Useful for library authors and dangerous for App Developers) to achieve this task.
+
+It makes the store available to all of the children component automatically.
+
+connect(mapStateToProps, mapDispatchToProps)
+
+mapStateToProps - What state should I expose as Props.
+mapDispatchToProps - What dispatch do I want on Props.
+
+function mapStateToProps(state) {
+    return {
+        appstate: state
+    };
+}
+
+Note- When you define this function, the component will subscribe to Redux store updates. Any time this updates,
+mapStateToProps will be called. This function returns an Object, which will be available inside the component as
+props, so this is the best place to filter the state to be available inside the component.
+
+// Reselect library
+If you are performing complex operations inside mapStateToProps functions, we should use 'Reselect' library to
+memoize the returned results of the function calls with the same arguments. So that this function is not called
+again and again with the same number of arguments and return the same result.
+
+//In the component
+this.props.appstate
+
+function mapDispatchToProps(dispatch) {
+    return {
+        actions: bindActionCreators(actions, dispatch)
+    };
+}
+
+// Benefits over FLUX:
+1. No manual unsubscribe
+2. No lifecycle methods required(so can be used with stateless components)
+3. Declare what subset of state you want(rather than exposing the entire state object)
+4. Enhanced performance improvement(that prevents unnecessary re-renders of components)
+
+Note- Ideally the presentation components should know nothing about the Redux, they should only receive the required
+data via props from the container components that are aware of Redux. 
+
+
+/* The New Boston React-Redux
+============================================ */
+
+/* js/index.js
+======================================== */
+import {createStore} from 'redux';
+import ReactDOM from 'react-dom';
+import {Provider} from 'react-redux';
+import allReducers from './reducers/index';
+import App from './components/app';
+
+const store = createStore(allReducers);
+
+ReactDOM.render(
+    <Provider store={store}>
+        <App />
+    </Provider>,
+    document.getElementById('app')
+);
+
+Note - Reducers(functions) update state (This function accepts the current state in an action and returns a new state).
+Since, store is one large JavaScript Object so, we need to combine all the reducer functions (in index.js file in
+the reducers folder).
+
+/* reducers/index.js
+======================================= */
+
+import combineReducers from 'redux';
+import {UserReducer} from './reducers-user';
+
+export default const allReducers = combineReducers({
+    users: UserReducer
+});
+
+
+Note- mapStateToProps(state) takes a piece of state(which is a part of the singleton store) and sends it to
+the component in the form of props.
+
+/* user-list.js
+======================================= */
+
+import {connect} from 'react-redux';
+import {bindActionCreators} from 'redux';
+import {selectUser} from '../actions/index';
+
+function mapStateToProps(state) {
+    return {
+        users: state.users
+    };
+}
+
+function mapDispatchToProps(dispatch) {
+    return bindActionCreators({selectUser: selectUser}, dispatch);
+}
+
+export connect(mapStateToProps, mapDispatchToProps)(UserList);
+
+Note- Here UserList is a container component rather than a simple presentational component.
+
+
+/* Eggheads.io Redux Fundamentals 
+=============================================== */
+
+Pure functions are predicatable, they always return the same value for the same set of
+arguments. They never change the value of the arguments passed to it, rather return a 
+new value based on the operations performed on the passed arguments. 
+They never make an API or Database call.
+
+Reducers in the React-Redux applications are required to be Pure functions.
+
+
+/* Redux articles
+================================================ */
+
+Another advantage of Redux is using it on the server side. Since we are dealing with plain 
+JavaScript, you could send the state across the network. Serializing and deserializing a 
+state object works out of the box. 
+
+You can use JavaScript to compose and manipulate your DOM, but it is inlined in your HTML. 
+You can use built-in JavaScript functionalities like map and filter to display multiple 
+(filtered) DOM nodes. But you can also use ternaries(?:) to make conditional renderings happen. 
+You can use the full power of JavaScript in your HTML.
+
+In a component a callback comes with the little word on as prefix (onCreateReply). 
+The prefix in a reducer to change the state is apply (applyCreateReply), in a selector 
+it is get (getReply) and in a action creator it is do (doCreateReply). You don’t need 
+to follow these recommendations, but I would suggest to follow your own naming 
+conventions at least.
+
+// The feature module index.js could have the following content:
+
+/* messages/index.js
+======================= */
+
+import MessageList from './messageList';
+
+export default MessageList;
+
+export MessageItem from './messageItem';
+export reducer from './reducer';
+export actions from './actions';
+
+// Now every foreign feature module should only access the message feature module 
+by its entry point.
+
+// bad
+import { reducer } from ./message/reducer;
+
+// good
+import { reducer } from ./message;
+
+
+// A better way to structure Redux + React project:
+
+todos/
+  components/
+  actions.js
+  actionTypes.js
+  constants.js
+  index.js
+  reducer.js
+index.js
+rootReducer.js
+
+Note- It may seem reasonable to group similar objects together like this 
+(controllers with controllers, components with components), however as the application 
+grows this structure does not scale.
+
+For example, in a todo app, when you change the reducers/todos.js file, it is likely that 
+you will also change actions/todos.js and components/todos/*.js.
+
+Instead of wasting time scrolling through your directories looking for todos related 
+files, it is much better to have them sitting in the same location.
+
+This means that if I need to change something related to todos, I can work soley 
+within that module and not even think about the rest of the application. In a sense, 
+it creates an application within the main application.
+
+
+// Tracing State changes
+
+In a growing application with plenty of actions you want to have traceable state changes. 
+One neat helper to see all of your state changes is redux-logger. Each logging shows the 
+previous state, the action and the next state.
+
+But you want to ensure that your actions are recognizable. Therefore I recommend to 
+have prefixes for your action types.
+
+const MESSAGE_CREATE_REPLY = 'message/CREATE_REPLY';
+
+Now whenever you create a message reply, you will see the logging message/CREATE_REPLY. 
+In case of a state bug you can quickly trace the faulty state change.
+
+// Keep Your State Flat
+
+It makes sense to normalize the data to make the state flat. The normalized data 
+references each other by id. Afterwards you can save them by entity type to easily 
+look them up by id and reference.
+
+{
+  posts: {
+    1: {
+      authorId: 'a',
+      commentIds: ['z', ...]
+    }
+  },
+  authors: {
+    a: {
+      ...
+    }
+  },
+  comments: {
+    z: {
+      ...
+    }
+  },
+}
+
+
+// Selectors
+
+Selectors can compute derived data, allowing Redux to store the minimal possible state.
+Reselect Selectors are efficient. A selector is not recomputed unless one of its arguments change.
+
+function mapStateToProps(state) {
+  return {
+    isShown: getIsShown(state),
+  };
+};
+
+Later you could have a look into reselect. It helps you to compute derived data from your state 
+and gives your application a performance boost.
+
+
+// Eggheads Videos 2
+
+When we create the store, the initial state of the store is determined by the rootReducer.
+rootReducer is the result of combining all the individual reducer, so the intial state passed
+to the reducer as defualt argument, will constitute the initial value of the store.
+
+createStore() method allows to specify the persisted state of the application, as the 
+second argument. And it will overwrite the values provided by the reducers and thus the intial
+state of the store will be defined by the persisted state.
+
+Note- The state in a Redux application should only contain plain JavaScript objects and 
+arrays rather than functions, so that it should be serializable and unserializable, to tranfer
+it as a JSON object over the network or store it into the Localstorage.
+
+// React Router
+
+import { Router, Route, browserHistory } from 'react-router';
+
+<Provider store={store}>
+    <Router history={browserHistory}>       // To avoid Hash(#) based routing and rather using browser URL history for routing (to have a clean URL in the Browser bar)
+        <Route path="/" component={App} />
+    </Router>
+</Provider>
+
+
+// Using withRouter() to Inject the Params into Connected Components (to 
+avoid passing down params as props deeply nested components)
+
+withRouter() takes a React component and returns different React components that injects the 
+router related Props such as 'params' into your component.
+
+withRouter(connect(mapStateToProps, mapDispatchToProps)(Component)); 
+
+This makes the connected component to access the 'params' as a prop.
+
+mapStateToProps(state, ownProps) {
+    return {
+        todos: state.todos,
+        filter: ownProps.params.filter
+    }
+}
+
+Note- withRouter() only works with connect() since 'react-router' version 3.0, so make sure to 
+use the latest version of the library.
+
+Note- We have to import React in every component where we use JSX.
+
+
+/* Pluralsight Videos
+========================================== */
+
+Note- In Flux, the async calls are made inside the Actions. While in Redux, actions are
+synchronous and must return an object.
+
+// 3 async calls libraries in Redux
+
+=> redux-thunk -> Allows to return functions from action creators instead of objects. Thunk wraps
+an async operation inside a function. Difficult to test. Easy to understand the underlying code.
+
+=> redux-promise
+
+=> redux-saga -> It uses ES6 Generators, they are functions which can be paused and resumed later.
+Easier to test. Learning curve is steep.
+
+Computer Science Term - Thunk is a function that wraps an expression in order to delay its evaluation.
+
+
+=> Configuring 'thunk'
+
+import thunk from 'redux-thunk';
+
+const store = createStore(
+    rootReducer,
+    applyMiddleware(thunk)
+);
+
+
+=> creating Action Creator
+
+function loadCoursesSuccess(courses) {
+    return {
+        type: types.LOAD_COURSES_SUCCESS,
+        courses: courses
+    };
+}
+
+function loadCourses(){
+    return function(dispatch) {
+        return courseApi.getAllCourses().then(courses => {      // You can make Ajax calls here
+            dispatch(loadCoursesSuccess(courses));
+        }).catch(err => {
+            throw(err);
+        });
+    }
+}
+
+=> creating reducer
+
+function courseReducer(state = [], action) {
+    switch(action.type) {
+        case type.LOAD_COURSES_SUCCESS: 
+            return action.courses;
+
+        defualt: 
+            return state;
+    }
+}
+
+
+=> dispatch load courses action on page load
+
+// index.js (entry point of the application)
+
+store.dispatch(loadCourses());
+
+
+// Redirect via React Router Context
+
+HomeComponent.contextTypes = {
+    router: Proptypes.object
+};
+
+this.context.router.push('/about');
+
+
+// 
+
+componentWillReceiveProps(nextProps) {
+    if(this.props.course.id != nextProps.course.id) {
+        this.setState({course: Object.assign({}, nextProps.course)});
+    }
+}
+
+
+
+//
+
+The development build of the webpack doesn't generates any physical files, it reads the 
+source files from the directory and serves the process file from the memory.
+
+/dist
+    index.html
+    bundle.js
+    style.css
+
+<------------ Very Important Note ------------>
+Note- Dynamic imports are not supported by ES6, so we use require() in that situation.
+
+// configureStore.js
+
+if(process.env.NODE_ENV === 'production') {
+    module.exports = require('./configureStore.prod');
+} else {
+    module.exports = require('./configureStore.dev');
+}
+
+
+// tools/buildHTML.js
+
+Cheerio library (node) gives us a handy way to interact with in memory DOM using jQuery selectors.
+
+fs.readFile('src/index.html', 'utf8', (err, markup) => {
+
+    const $ = cheerio.load(markup);
+
+    $('head').prepend('<link rel="stylesheet" href="styles.css">');
+
+    fs.writeFile('dist/index.html', $.html(), 'utf8', function(){
+        console.log('index.html written to /dist');
+    });
+
+});
+
+
+
+
+
