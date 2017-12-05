@@ -1,0 +1,158 @@
+=> Multi Page Application
+Multiple ReactDOM.render() call per widget(containing react component).
+
+/* Routing
+===================================================================== */
+
+=> Packages to be imported
+react-router
+react-router-dom
+
+=> Setting up routing in the application
+
+import { BrowserRouter } from 'react-router-dom';
+
+<BrowserRouter>
+    <div className="App">
+        <Blog />
+    </div>
+</BrowserRouter>
+
+Note- This object should wrap the component in your app which should support routing.
+
+=> Setting up routes in the JSX of the component where we want to show the components via routing
+
+import { Route } from 'react-router-dom';
+
+<Route path="/" exact render={() => <Home/>} />
+<Route path="/" exact component={Home} />
+
+Note- This will render the Home component in the JSX of the root/parent component when the URL 
+route exactly matches '/'.
+
+Note- 'render' property should be used to display short JSX or short static message.
+You should never put an entire component in 'render' property, that would mess up the code, 
+rather use the component property to render an entire component.
+
+=> Using Links to switch pages
+
+import { Link } from 'react-router-dom';
+
+<Link to="/">Home</Link>
+
+<Link to={{
+    pathname: '/new-post',
+    hash: '#submit',         // Adding fragments to the end of the URL
+    search: '?quick-submit=true'           // Adding query parameters to the URL
+}}>New Post</Link>
+
+Note- Using Link component will not reload the page, unlike <a href=""></a> and will keep the 
+characteristics of a single page application, keeping the state of the application intact.
+
+=> Routing related props(provided by react-router)
+
+console.log(this.props);
+
+{
+    history: {}
+    location: { hash: '', search: '', pathname: '' }               // using this we can parse the 
+    match: { isExact: true }   // whether path matched exactly     // parameters in the URL
+}
+
+Note- We can access them in componentDidMount() lifecycle method, as the component is removed and added to the DOM all the time.
+
+Note- The routing related props are not passed down the component tree, that is, it will not be 
+available in the components embedded in the JSX of the parent component.
+
+=> To achieve this we can use higher order component 'withRouter'
+
+import { withRouter } from 'react-router-dom';
+
+export default withRouter(post);
+
+Note- This makes the 'post' component route aware, and will receive props containing the information
+of the nearest loaded route.
+
+=> Styling the Active Link
+
+import { NavLink } from 'react-router-dom';
+
+<NavLink to="/" exact>Home</NavLink>
+
+Note- This component has additional props which lets us style the current active route link, unlike
+the Link component. This will apply the 'active' class to the currently active link.
+
+Note- We can also determine the active class name to be used rather than 'active', we can specify a
+prop called 'activeClassName' on the NavLink component.
+We can also provide CSS styles in the 'activeStyle' prop.
+
+=> Using switch to load only a single route at a time 
+
+import { Switch } from 'react-router-dom';
+
+<Switch>
+    <Route path="/" exact render={() => <h1>Hello</h1>} />
+    <Route path="/" exact component={Home} />
+</Switch>
+
+Note- This will stop loading other routes(if any) after matching the very first route.
+We can also put some routes inside the switch and other routes outside it according to our needs.
+
+=> Navigating Programatically(using route realted props)
+
+this.props.history.push({pathname: '/new-post'});       // pushing component to the navigation stack
+
+or
+
+this.props.history.push('/new-post');
+
+=> Redirecting route requests
+
+import { Switch, Redirect } from 'react-router-dom';
+
+<Switch>
+    <Redirect from="/" to="/posts" />
+</Switch>
+
+Note- We cannot use the 'from' prop from outside the 'Switch' component.
+
+=> Using the History prop to redirect route requests
+
+Redirect replaces the current page on the navigation stack and doesn't push a new one. On the other
+hand this.props.history.push() method pushes a new page on the navigation stack, so we can use 
+this.props.history.replace() method to achieve the same behaviour as Redirect.
+
+=> Working with Guards
+
+<Switch>
+    { this.state.auth === true ? <Route path="/add-post" component={AddPost} /> : null}
+    <Route path="/posts" component="Posts" />
+    <Route from="/" to="/posts">
+</Switch>
+
+Note- If the 'auth' field in the state object is true, then only the user is allowed to access the 
+given route else not.
+
+or
+
+// AddPost component page
+
+componentDidMount() {
+    if(this.state.auth === false) {
+        this.props.history.replace('/posts');
+    }
+}
+
+=> Handling 404 requests
+
+Keep the last route in the switch statement to handle all the 404 requests, as it is the default
+route which will be rendered if no other above routes match with it. 
+Also, we can also use <Redirect/> as the last route in the switch component to handle such requests.
+
+
+/* Form Validation
+===================================================================== */
+
+From React 16+ onwards we cannot keep the name of the custom props as camelCase or PascalCase.
+We have to keep it all lowercase otherwise it will give an error.
+
