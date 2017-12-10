@@ -1,6 +1,140 @@
 => Multi Page Application
 Multiple ReactDOM.render() call per widget(containing react component).
 
+=> Array.concat() is the immutable way to change the value of an array, rather than pushing
+to the new value to the exisiting array.
+
+=> In a reducer we do not have the access to the complete state, only the state part changed
+by the reducer. We send the required part of the state into a different reducer using the 
+action payload.
+
+=> this.setState() mehtod can be invoked with partial state values, and we are not required to
+pass the entire state to it.
+
+/* Deployment Steps
+========================================================================== */
+
+1. Adjust Basepath: <BrowserRouter basename="/my-app/">
+
+Note- This has to done if our app is served from the some custom path other than root path
+of the server.
+
+2. npm run build
+
+3. Upload the build files to the static server.
+
+
+/* Diving Deeper into Components
+===================================================================== */
+
+=> Pure Component
+
+Pure component has its own implementation of shouldComponentUpdate() lifecycle method, which 
+decreases our overhead to implement it our self and increases application performance.
+
+Note- This should only be used in root level component which are responsible to update child 
+components by passing props. As implementing this in every component will again lead to checking
+of props and state every time and in each component, which degrades the performance of the 
+application. 
+
+=> Virtual DOM
+
+React doesn't really updates the DOM on calling the render() method inside the component. Rather it
+updates the Virtual DOM. It also maintains 2 copies of Virtual DOM(old and new). If it finds 
+any significant diff between the 2 virtual DOMs, then only the real DOM is updated and that too
+very optimally. 
+
+=> Returning Adjacent elements rather than a single root element from render()
+
+From React 16 onwards, we can return an array of Adjacent(sibling) JSX elements without having to
+wrap it in a single root element.
+
+Note= The elements in the array should have a key arrtibute on them.
+
+=> Higher Order Components
+
+It wraps a component and adds some logic to it. We make HOCs to wrap multiple components which
+are required to add some logic to them.
+
+We can make HOCs in two ways: 
+
+1. Wrapping element - By making use of props.children for the normal component.
+2. Function - By passing the normal component as an argument to this HOC. 
+
+Note- We have to pass the props of the normal component from HOCs using the spread(...props) 
+operator.
+
+Note- We can also return a class(stateful components) from HOCs.
+
+=> Correct way of calling this.setState()
+
+React calls this.setState() method asynchronously, so when our new state depends on the value of
+our old state(eg- counter), that is, 'this.state' is getting used inside this method, then we 
+should always call it as:
+
+this.setState((prevState, props) => {
+    return {
+        counter: prevState.counter + 1;
+    }
+});
+
+=> Props Validation
+
+npm install --save prop-types
+
+import PropTypes from 'prop-types';
+
+By going below class definition and adding PropTypes property. Basically editing the class after
+it was defined.
+
+Person.propTypes = {
+    name: PropTypes.string,
+    age: PropTypes.number,
+    change: PropTypes.func
+};
+
+Note- It doesn't works in Presentational components, which by the way have to just print the 
+received props on the screen.
+
+=> Element Reference
+
+<input ref={(ele) => { this.inputElement = ele }}
+
+Note- Here 'inputElement' becomes a property of the class. This should not be used to change
+styling of the element dynamically, rather it should be used for focus() or click().
+They are only available in stateful components.
+This is set when the render() method is called, so we can make use of it in componentDidMount().
+
+
+/* Making asynchronous API calls
+==================================================================== */
+
+We can set up action creators using redux-thunk which can return a function(which will ultimately
+dispatch an action after the asynchronous call response arrives) rather than returning an action 
+instantly.
+
+Note- thunk is setup as a middleware which blocks our returned function until async call response 
+arrives.
+
+const fetchPost = () => {
+    return (dispatch, getState) => {
+        axios.get('/get').then((response) => {
+            counter = getState().counter;
+            dispatch(displayPost(response, counter));
+        })
+    }
+}
+
+Note- Here displayPost is another action creator which instantly dispatches an action to render the
+fetched post on the screen.
+
+Also we can access the current state by making the call to the getState() whose reference is 
+provided in the second argument of the return function from async action creator. But do not 
+over use it, rather accept the required state variable in the parameter to this action creator
+function. 
+
+
+
 /* Routing
 ===================================================================== */
 
